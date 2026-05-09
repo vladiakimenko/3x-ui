@@ -1,0 +1,45 @@
+services:
+  3x-ui:
+    image: ghcr.io/mhsanaei/3x-ui:latest
+    container_name: 3x-ui
+    volumes:
+      - ./db/:/etc/x-ui/
+      - ./cert/:/root/cert/
+    environment:
+      XRAY_VMESS_AEAD_FORCED: "false"
+    tty: true
+    network_mode: host
+    restart: unless-stopped
+
+  amneziawg:
+    image: ghcr.io/w0rng/amnezia-wg-easy:latest
+    container_name: amneziawg
+    restart: unless-stopped
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - LANG=en
+      - WG_HOST=YOUR_SERVER_IP_OR_DOMAIN
+      - PASSWORD=change_this_password
+      - PORT=51821
+      - WG_PORT=51820
+    volumes:
+      - ./wireguard:/etc/wireguard
+      - /lib/modules:/lib/modules:ro
+    ports:
+      - "51820:51820/udp"
+      - "51821:51821/tcp"
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - net.ipv4.conf.all.src_valid_mark=1
+
+  mtproto:
+    image: telegrammessenger/proxy:latest
+    container_name: mtproto
+    restart: always
+    ports:
+      - "444:443"
+    volumes:
+      - ./mtproto:/data
